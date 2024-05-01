@@ -1,0 +1,6 @@
+body {
+    background: url('/pub/pictures/background.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
