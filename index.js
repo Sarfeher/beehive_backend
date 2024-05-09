@@ -1,6 +1,10 @@
 import express from "express";
 import path from 'path';
 import { fileURLToPath } from "url";
+import { searchBee } from './utils.js';
+import { deleteBee } from "./utils.js";
+import { findOneBee } from "./utils.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -28,7 +32,17 @@ app.get('/api/beehive', async (req, res, next) => {
         next(error)
     }
 })
-//get bee by id endpoint
+
+app.get('/api/bees/:id', async (req, res, next) => {
+    try {
+        let searchedBee;
+        let beeId = req.params.id;
+        searchedBee = findOneBee(beehive, beeId)
+        res.status(200).json(searchedBee);
+    } catch (error) {
+        next(error)
+    }
+})
 
 app.post('/api/bees', async (req, res, next) => {
     try {
@@ -41,7 +55,7 @@ app.post('/api/bees', async (req, res, next) => {
         const beeName = req.body.name;
         const newBee = { id: beeId, name: beeName }
         beehive.push(newBee);
-        console.log(beehive)
+
         res.status(201).json(`${beeName} flew into the hive!`);
     } catch (error) {
         next(error)
@@ -56,13 +70,9 @@ app.patch('/api/bees/:id', async (req, res, next) => {
         }
 
         const beeId = req.params.id
+        const reqBeeName = req.body.name;
         let beeName;
-        for (const bee of beehive) {
-            if (bee.id == beeId) {
-                beeName = bee.name;
-                bee.name = req.body.name;
-            }
-        }
+        beeName = searchBee(beehive, beeId, reqBeeName)
 
         res.status(200).json(`${beeName} change its name to ${req.body.name}!`);
     } catch (error) {
@@ -76,15 +86,10 @@ app.delete('/api/bees', async (req, res, next) => {
         const beeName = req.body.name;
         let deletedItem = null;
 
-        for (let i = 0; i < beehive.length; i++) {
-            if (beehive[i].name === beeName) {
-                deletedItem = beehive.splice(i, 1)[0];
-                break;
-            }
-        }
+        deletedItem = deleteBee(beehive, beeName)
 
         if (!deletedItem) {
-            return res.status(404).end(); 
+            return res.status(404).end();
         }
 
         return res.status(204).end();
