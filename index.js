@@ -19,7 +19,8 @@ app.listen(3000, () => {
 })
 
 let actuallyId = 1
-const beehive = [{ id: 1, name: "Buttercup" }];
+const beehive = {bees: [
+    { id: 1, name: "Buttercup" }]};
 
 app.get('/', async (req, res) => {
     res.sendFile(path.join(__dirname, 'static', 'index.html'));
@@ -34,10 +35,13 @@ app.get('/api/beehive', async (req, res, next) => {
 })
 
 app.get('/api/bees/:id', async (req, res, next) => {
+    let searchedBee;
+    let beeId = req.params.id;
     try {
-        let searchedBee;
-        let beeId = req.params.id;
-        searchedBee = findOneBee(beehive, beeId)
+        searchedBee = findOneBee(beehive.bees, beeId)
+        if (searchedBee === undefined) {
+            res.status(404).json({message: `Bee with this id: ${beeId} not found.`})
+        }
         res.status(200).json(searchedBee);
     } catch (error) {
         next(error)
@@ -54,7 +58,7 @@ app.post('/api/bees', async (req, res, next) => {
         actuallyId++;
         const beeName = req.body.name;
         const newBee = { id: beeId, name: beeName }
-        beehive.push(newBee);
+        beehive.bees.push(newBee);
 
         res.status(201).json(`${beeName} flew into the hive!`);
     } catch (error) {
@@ -72,7 +76,7 @@ app.patch('/api/bees/:id', async (req, res, next) => {
         const beeId = req.params.id
         const reqBeeName = req.body.name;
         let beeName;
-        beeName = searchBee(beehive, beeId, reqBeeName)
+        beeName = searchBee(beehive.bees, beeId, reqBeeName)
 
         res.status(200).json(`${beeName} change its name to ${req.body.name}!`);
     } catch (error) {
@@ -86,7 +90,7 @@ app.delete('/api/bees', async (req, res, next) => {
         const beeName = req.body.name;
         let deletedItem = null;
 
-        deletedItem = deleteBee(beehive, beeName)
+        deletedItem = deleteBee(beehive.bees, beeName)
 
         if (!deletedItem) {
             return res.status(404).end();
